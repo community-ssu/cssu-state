@@ -15,9 +15,13 @@ dpkg_cmp() {
 }
 
 GIT_PACKAGES=`(wget -q https://gitorious.org/community-ssu/ -O - | sed -n 's/git clone .*\.git //p'; wget -q https://gitorious.org/community-ssu/ -O - | sed -n 's/.*"><strong>//p' | sed 's/<\/strong>.*//') | sort -u`
+PACKAGES=
 for git_package in $GIT_PACKAGES; do
-	package=`echo $git_package | tr .+- ___`
-	eval GIT_$package="`wget -q https://gitorious.org/community-ssu/$git_package/blobs/raw/master/debian/changelog --max-redirect 0 -O - | head -1 | sed 's/^.*(\(.*\)).*$/\1/'`"
+	line=`wget -q https://gitorious.org/community-ssu/$git_package/blobs/raw/master/debian/changelog --max-redirect 0 -O - | head -1 | sed 's/^\([^\ ]*\) (\(.*\)).*$/\1 \2/'`
+	package=`echo $line | cut -f1 -d' '`
+	PACKAGES="$PACKAGES $package"
+	package=`echo $package | tr .+- ___`
+	eval GIT_$package="`echo $line | cut -f2 -d' '`"
 	eval GITSTABLE_$package="`wget -q https://gitorious.org/community-ssu/$git_package/blobs/raw/stable/debian/changelog --max-redirect 0 -O - | head -1 | sed 's/^.*(\(.*\)).*$/\1/'`"
 done
 
@@ -83,7 +87,8 @@ RED=$(tput setaf 1)
 YELLOW=$(tput setaf 3)
 
 printf "%-40s %-35s %-35s %-35s %-35s %-35s\n" "package" "git" "devel" "testing" "git-stable" "stable"
-for git_package in $GIT_PACKAGES; do
+for git_package in $PACKAGES; do
+	if [ -z "$git_package" ]; then continue; fi
 	package=`echo $git_package | tr .+- ___`
 	eval git_version="\${GIT_$package}"
 	eval devel_version="\${DEVEL_$package}"
