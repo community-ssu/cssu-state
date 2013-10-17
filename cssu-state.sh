@@ -14,16 +14,21 @@ dpkg_cmp() {
 
 }
 
-GIT_PACKAGES=`(wget -q http://gitorious.org/community-ssu/ -O - | sed -n 's/git clone .*\.git //p'; wget -q http://gitorious.org/community-ssu/ -O - | sed -n 's/.*"><strong>//p' | sed 's/<\/strong>.*//') | sort -u`
+GIT_PACKAGES=`wget -q http://gitorious.org/community-ssu/ -O - | sed -n 's/git clone .*\.git //p'; wget -q http://gitorious.org/community-ssu/ -O - | sed -n 's/.*"><strong>//p' | sed 's/<\/strong>.*//'`
 PACKAGES=
 for git_package in $GIT_PACKAGES; do
 	line=`wget -q http://gitorious.org/community-ssu/$git_package/blobs/raw/master/debian/changelog -O - | head -1 | sed -n 's/^\([^\ ]*\) (\(.*\)).*$/\1 \2/p'`
 	package=`echo $line | cut -f1 -d' '`
+	if [ -z "$package" ]; then
+		package=$git_package
+	fi
 	PACKAGES="$PACKAGES $package"
 	package=`echo $package | tr .+- ___`
 	eval GIT_$package="`echo $line | cut -f2 -d' '`"
 	eval GITSTABLE_$package="`wget -q http://gitorious.org/community-ssu/$git_package/blobs/raw/stable/debian/changelog -O - | head -1 | sed -n 's/^.*(\(.*\)).*$/\1/p'`"
 done
+
+PACKAGES=`echo $PACKAGES | tr ' ' '\n' | sort -u`
 
 wget -q http://maemo.merlin1991.at/cssu/community-devel/dists/fremantle/free/source/Sources.gz -O - | gunzip | (
 
