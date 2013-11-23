@@ -14,7 +14,7 @@ dpkg_cmp() {
 
 }
 
-GIT_PACKAGES=`wget -q http://gitorious.org/community-ssu/ -O - | sed -n 's/git clone .*\.git //p'; wget -q http://gitorious.org/community-ssu/ -O - | sed -n 's/.*"><strong>//p' | sed 's/<\/strong>.*//'`
+GIT_PACKAGES=`wget -q http://gitorious.org/community-ssu/ -O - | sed -n '/<h3>Repositories<\/h3>/,/<h3>User clones<\/h3>/s/\s*<a href=".*community-ssu\///p' | sed 's/<\/a>//'`
 PACKAGES=
 for git_package in $GIT_PACKAGES; do
 	line=`wget -q http://gitorious.org/community-ssu/$git_package/blobs/raw/master/debian/changelog -O - | head -1 | sed -n 's/^\([^\ ]*\) (\(.*\)).*$/\1 \2/p'`
