@@ -101,7 +101,7 @@ for git_package in $PACKAGES; do
 	eval gitstable_version="\${GITSTABLE_$package}"
 	eval stable_version="\${STABLE_$package}"
 	printf "%-40s " "$git_package"
-	if dpkg_cmp "$git_version" "$devel_version" || dpkg_cmp "$git_version" "$testing_version"; then
+	if dpkg_cmp "$git_version" "$devel_version" || dpkg_cmp "$git_version" "$testing_version" || dpkg_cmp "$git_version" "$gitstable_version"; then
 		printf "${YELLOW}%-35s${NORMAL} " "$git_version"
 	else
 		printf "%-35s " "$git_version"
@@ -116,7 +116,7 @@ for git_package in $PACKAGES; do
 	else
 		printf "%-35s " "$testing_version"
 	fi
-	if dpkg_cmp "$git_version" "$gitstable_version" || dpkg_cmp "$gitstable_version" "$stable_version"; then
+	if dpkg_cmp "$gitstable_version" "$git_version" || dpkg_cmp "$gitstable_version" "$stable_version"; then
 		printf "${YELLOW}%-35s${NORMAL} " "$gitstable_version"
 	else
 		printf "%-35s " "$gitstable_version"
