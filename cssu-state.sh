@@ -26,6 +26,7 @@ for git_package in $GIT_PACKAGES; do
 	package=`echo $package | tr .+- ___`
 	eval GIT_$package="`echo $line | cut -f2 -d' '`"
 	eval GITSTABLE_$package="`wget -q http://gitorious.org/community-ssu/$git_package/blobs/raw/stable/debian/changelog -O - | head -1 | sed -n 's/^.*(\(.*\)).*$/\1/p'`"
+	eval GITTHUMB_$package="`wget -q http://gitorious.org/community-ssu/$git_package/blobs/raw/thumb-testing/debian/changelog -O - | head -1 | sed -n 's/^.*(\(.*\)).*$/\1/p'`"
 done
 
 PACKAGES=`echo $PACKAGES | tr ' ' '\n' | sort -u`
@@ -43,6 +44,25 @@ while read key value; do
 			eval old="\${DEVEL_$package}"
 			if [ -z "$old" ] || dpkg_cmp "$old" "$value"; then
 				eval DEVEL_$package="$value"
+			fi
+		fi
+		package=""
+	fi
+done
+
+wget -q http://maemo.merlin1991.at/cssu/community-thumb/dists/fremantle/free/source/Sources.gz -O - | gunzip | (
+
+package=
+while read key value; do
+	if [ "$key" = "Package:" ]; then
+		package=`echo $value | tr .+- ___`
+	elif [ -z "$key" ]; then
+		package=""
+	elif [ "$key" = "Version:" ]; then
+		if [ -n "$package" ]; then
+			eval old="\${THUMB_$package}"
+			if [ -z "$old" ] || dpkg_cmp "$old" "$value"; then
+				eval THUMB_$package="$value"
 			fi
 		fi
 		package=""
@@ -91,7 +111,11 @@ NORMAL=$(tput sgr0)
 RED=$(tput setaf 1)
 YELLOW=$(tput setaf 3)
 
-printf "%-40s %-35s %-35s %-35s %-35s %-35s\n" "package" "git" "devel" "testing" "git-stable" "stable"
+if test -n "$1"; then
+	printf "%-40s %-35s %-35s %-35s %-35s %-35s\n" "package" "git" "devel" "testing" "git-thumb" "thumb"
+else
+	printf "%-40s %-35s %-35s %-35s %-35s %-35s\n" "package" "git" "devel" "testing" "git-stable" "stable"
+fi
 for git_package in $PACKAGES; do
 	if [ -z "$git_package" ]; then continue; fi
 	package=`echo $git_package | tr .+- ___`
@@ -100,6 +124,8 @@ for git_package in $PACKAGES; do
 	eval testing_version="\${TESTING_$package}"
 	eval gitstable_version="\${GITSTABLE_$package}"
 	eval stable_version="\${STABLE_$package}"
+	eval gitthumb_version="\${GITTHUMB_$package}"
+	eval thumb_version="\${THUMB_$package}"
 	printf "%-40s " "$git_package"
 	if dpkg_cmp "$git_version" "$devel_version" || dpkg_cmp "$git_version" "$testing_version" || dpkg_cmp "$git_version" "$gitstable_version"; then
 		printf "${YELLOW}%-35s${NORMAL} " "$git_version"
@@ -116,17 +142,32 @@ for git_package in $PACKAGES; do
 	else
 		printf "%-35s " "$testing_version"
 	fi
-	if dpkg_cmp "$gitstable_version" "$git_version" || dpkg_cmp "$gitstable_version" "$stable_version"; then
-		printf "${YELLOW}%-35s${NORMAL} " "$gitstable_version"
+	if test -n "$1"; then
+		if dpkg_cmp "$gitthumb_version" "$git_version" || dpkg_cmp "$gitthumb_version" "$devel_version" || dpkg_cmp "$gitthumb_version" "$testing_version" || dpkg_cmp "$gitthumb_version" "$thumb_version"; then
+			printf "${YELLOW}%-35s${NORMAL} " "$gitthumb_version"
+		else
+			printf "%-35s " "$gitthumb_version"
+		fi
+		if dpkg_cmp "$thumb_version" "$gitthumb_version"; then
+			printf "${YELLOW}%-35s${NORMAL}\n" "$thumb_version"
+		else
+			printf "%-35s\n" "$thumb_version"
+		fi
 	else
-		printf "%-35s " "$gitstable_version"
-	fi
-	if dpkg_cmp "$stable_version" "$gitstable_version"; then
-		printf "${YELLOW}%-35s${NORMAL}\n" "$stable_version"
-	else
-		printf "%-35s\n" "$stable_version"
+		if dpkg_cmp "$gitstable_version" "$git_version" || dpkg_cmp "$gitstable_version" "$stable_version"; then
+			printf "${YELLOW}%-35s${NORMAL} " "$gitstable_version"
+		else
+			printf "%-35s " "$gitstable_version"
+		fi
+		if dpkg_cmp "$stable_version" "$gitstable_version"; then
+			printf "${YELLOW}%-35s${NORMAL}\n" "$stable_version"
+		else
+			printf "%-35s\n" "$stable_version"
+		fi
 	fi
 done
+
+)
 
 )
 
