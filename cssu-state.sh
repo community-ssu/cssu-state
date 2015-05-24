@@ -2,7 +2,7 @@
 
 # Author: Pali Rohár
 # License: GPLv3+
-# Description: Show state of CSSU packages in apt repositories and on gitorious
+# Description: Show state of CSSU packages in apt repositories and on github
 
 dpkg_cmp() {
 
@@ -14,10 +14,10 @@ dpkg_cmp() {
 
 }
 
-GIT_PACKAGES=`wget -q http://gitorious.org/community-ssu/ -O - | sed -n '/<h3>Repositories<\/h3>/,/<h3>User clones<\/h3>/s/\s*<a href=".*community-ssu\///p' | sed 's/<\/a>//'`
+GIT_PACKAGES=`wget -q 'https://api.github.com/orgs/community-ssu/repos?per_page=100&page=1' -O - | sed -n 's/^\s*"name": "\(.*\)",$/\1/p'; wget -q 'https://api.github.com/orgs/community-ssu/repos?per_page=100&page=2' -O - | sed -n 's/^\s*"name": "\(.*\)",$/\1/p'`
 PACKAGES=
 for git_package in $GIT_PACKAGES; do
-	line=`wget -q http://gitorious.org/community-ssu/$git_package/blobs/raw/master/debian/changelog -O - | head -1 | sed -n 's/^\([^\ ]*\) (\(.*\)).*$/\1 \2/p'`
+	line=`wget -q https://raw.githubusercontent.com/community-ssu/$git_package/master/debian/changelog -O - | head -1 | sed -n 's/^\([^\ ]*\) (\(.*\)).*$/\1 \2/p'`
 	package=`echo $line | cut -f1 -d' '`
 	if [ -z "$package" ]; then
 		package=$git_package
@@ -25,8 +25,8 @@ for git_package in $GIT_PACKAGES; do
 	PACKAGES="$PACKAGES $package"
 	package=`echo $package | tr .+- ___`
 	eval GIT_$package="`echo $line | cut -f2 -d' '`"
-	eval GITSTABLE_$package="`wget -q http://gitorious.org/community-ssu/$git_package/blobs/raw/stable/debian/changelog -O - | head -1 | sed -n 's/^.*(\(.*\)).*$/\1/p'`"
-	eval GITTHUMB_$package="`wget -q http://gitorious.org/community-ssu/$git_package/blobs/raw/thumb-testing/debian/changelog -O - | head -1 | sed -n 's/^.*(\(.*\)).*$/\1/p'`"
+	eval GITSTABLE_$package="`wget -q https://raw.githubusercontent.com/community-ssu/$git_package/stable/debian/changelog -O - | head -1 | sed -n 's/^.*(\(.*\)).*$/\1/p'`"
+	eval GITTHUMB_$package="`wget -q https://raw.githubusercontent.com/community-ssu/$git_package/thumb-testing/debian/changelog -O - | head -1 | sed -n 's/^.*(\(.*\)).*$/\1/p'`"
 done
 
 PACKAGES=`echo $PACKAGES | tr ' ' '\n' | sort -u`
