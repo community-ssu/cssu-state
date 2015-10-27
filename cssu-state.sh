@@ -14,10 +14,10 @@ dpkg_cmp() {
 
 }
 
-GIT_PACKAGES=`wget -q 'https://api.github.com/orgs/community-ssu/repos?per_page=100&page=1' -O - | sed -n 's/^\s*"name": "\(.*\)",$/\1/p'; wget -q 'https://api.github.com/orgs/community-ssu/repos?per_page=100&page=2' -O - | sed -n 's/^\s*"name": "\(.*\)",$/\1/p'`
+GIT_PACKAGES=`wget --no-check-certificate -q 'https://api.github.com/orgs/community-ssu/repos?per_page=100&page=1' -O - | sed -n 's/^\s*"name": "\(.*\)",$/\1/p'; wget --no-check-certificate -q 'https://api.github.com/orgs/community-ssu/repos?per_page=100&page=2' -O - | sed -n 's/^\s*"name": "\(.*\)",$/\1/p'`
 PACKAGES=
 for git_package in $GIT_PACKAGES; do
-	line=`wget -q https://raw.githubusercontent.com/community-ssu/$git_package/master/debian/changelog -O - | head -1 | sed -n 's/^\([^\ ]*\) (\(.*\)).*$/\1 \2/p'`
+	line=`wget --no-check-certificate -q https://raw.githubusercontent.com/community-ssu/$git_package/master/debian/changelog -O - | head -1 | sed -n 's/^\([^\ ]*\) (\(.*\)).*$/\1 \2/p'`
 	package=`echo $line | cut -f1 -d' '`
 	if [ -z "$package" ]; then
 		package=$git_package
@@ -25,13 +25,13 @@ for git_package in $GIT_PACKAGES; do
 	PACKAGES="$PACKAGES $package"
 	package=`echo $package | tr .+- ___`
 	eval GIT_$package="`echo $line | cut -f2 -d' '`"
-	eval GITSTABLE_$package="`wget -q https://raw.githubusercontent.com/community-ssu/$git_package/stable/debian/changelog -O - | head -1 | sed -n 's/^.*(\(.*\)).*$/\1/p'`"
-	eval GITTHUMB_$package="`wget -q https://raw.githubusercontent.com/community-ssu/$git_package/thumb-testing/debian/changelog -O - | head -1 | sed -n 's/^.*(\(.*\)).*$/\1/p'`"
+	eval GITSTABLE_$package="`wget --no-check-certificate -q https://raw.githubusercontent.com/community-ssu/$git_package/stable/debian/changelog -O - | head -1 | sed -n 's/^.*(\(.*\)).*$/\1/p'`"
+	eval GITTHUMB_$package="`wget --no-check-certificate -q https://raw.githubusercontent.com/community-ssu/$git_package/thumb-testing/debian/changelog -O - | head -1 | sed -n 's/^.*(\(.*\)).*$/\1/p'`"
 done
 
 PACKAGES=`echo $PACKAGES | tr ' ' '\n' | sort -u`
 
-wget -q http://maemo.merlin1991.at/cssu/community-devel/dists/fremantle/free/source/Sources.gz -O - | gunzip | (
+wget --no-check-certificate -q http://maemo.merlin1991.at/cssu/community-devel/dists/fremantle/free/source/Sources.gz -O - | gunzip | (
 
 package=
 while read key value; do
@@ -50,7 +50,7 @@ while read key value; do
 	fi
 done
 
-wget -q http://maemo.merlin1991.at/cssu/community-thumb/dists/fremantle/free/source/Sources.gz -O - | gunzip | (
+wget --no-check-certificate -q http://maemo.merlin1991.at/cssu/community-thumb/dists/fremantle/free/source/Sources.gz -O - | gunzip | (
 
 package=
 while read key value; do
@@ -69,7 +69,7 @@ while read key value; do
 	fi
 done
 
-wget -q http://repository.maemo.org/community-testing/dists/fremantle/free/source/Sources.gz -O - | gunzip | (
+wget --no-check-certificate -q http://repository.maemo.org/community-testing/dists/fremantle/free/source/Sources.gz -O - | gunzip | (
 
 package=
 while read key value; do
@@ -88,7 +88,7 @@ while read key value; do
 	fi
 done
 
-wget -q http://repository.maemo.org/community/dists/fremantle/free/source/Sources.gz -O - | gunzip | (
+wget --no-check-certificate -q http://repository.maemo.org/community/dists/fremantle/free/source/Sources.gz -O - | gunzip | (
 
 package=
 while read key value; do
