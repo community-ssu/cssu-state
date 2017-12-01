@@ -14,7 +14,7 @@ dpkg_cmp() {
 
 }
 
-GIT_PACKAGES=`wget --no-check-certificate -q 'https://api.github.com/orgs/community-ssu/repos?per_page=100&page=1' -O - | sed -n 's/^\s*"name": "\(.*\)",$/\1/p'; wget --no-check-certificate -q 'https://api.github.com/orgs/community-ssu/repos?per_page=100&page=2' -O - | sed -n 's/^\s*"name": "\(.*\)",$/\1/p'`
+GIT_PACKAGES=`wget --no-check-certificate -q 'https://api.github.com/orgs/community-ssu/repos?per_page=100&page=1' -O - | sed -n 's/^\s*"name": "\([^ ]*\)",$/\1/p' | grep -v '^Other$'; wget --no-check-certificate -q 'https://api.github.com/orgs/community-ssu/repos?per_page=100&page=2' -O - | sed -n 's/^\s*"name": "\([^ ]*\)",$/\1/p' | grep -v '^Other$'`
 PACKAGES=
 for git_package in $GIT_PACKAGES; do
 	line=`wget --no-check-certificate -q https://raw.githubusercontent.com/community-ssu/$git_package/master/debian/changelog -O - | head -1 | sed -n 's/^\([^\ ]*\) (\(.*\)).*$/\1 \2/p'`
